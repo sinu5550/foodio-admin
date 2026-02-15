@@ -1,7 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, SquarePen, Trash } from "lucide-react";
+import AddCategoryModal from "@/components/modals/AddCategoryModal";
+import EditCategoryModal from "@/components/modals/EditCategoryModal";
+import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
+
+interface Category {
+  id: string;
+  name: string;
+}
 
 const menuItemsData = [
   {
@@ -41,14 +49,68 @@ const menuItemsData = [
   },
 ];
 
-const categoriesData = [
-  { id: 1, name: "Starters", itemCount: 12 },
-  { id: 2, name: "Main Courses", itemCount: 24 },
-  { id: 3, name: "Desserts", itemCount: 8 },
-];
-
 export default function MenuItemsPage() {
   const [activeTab, setActiveTab] = useState("Menu Items");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null,
+  );
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
+    null,
+  );
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/categories");
+      const data = await response.json();
+      setCategories(data);
+    } catch (err) {
+      console.error("Failed to fetch categories", err);
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+
+    setDeleteLoading(true);
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/categories/${categoryToDelete.id}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) throw new Error("Failed to delete");
+
+      setIsDeleteModalOpen(false);
+      setCategoryToDelete(null);
+      fetchCategories();
+    } catch (err) {
+      console.error("Delete failed", err);
+      alert("Failed to delete category");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleEditClick = (category: Category) => {
+    setSelectedCategory(category);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteClick = (category: Category) => {
+    setCategoryToDelete(category);
+    setIsDeleteModalOpen(true);
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   return (
     <div className="flex flex-col">
@@ -78,7 +140,16 @@ export default function MenuItemsPage() {
           </div>
 
           {/* Add Button */}
-          <button className="bg-brand-green text-white px-6 py-2.5 rounded-full text-sm font-medium flex items-center gap-2 hover:bg-brand-green/95 transition-all shadow-xs">
+          <button
+            onClick={() => {
+              if (activeTab === "Categories") {
+                setIsAddModalOpen(true);
+              } else {
+                console.log("Add Item modal not implemented yet");
+              }
+            }}
+            className="bg-brand-green text-white px-6 py-2.5 rounded-full text-sm font-medium flex items-center gap-2 hover:bg-brand-green/95 transition-all shadow-xs"
+          >
             <Plus size={18} />
             {activeTab === "Menu Items" ? "Add Item" : "Add Category"}
           </button>
@@ -143,7 +214,7 @@ export default function MenuItemsPage() {
                       </td>
                     </tr>
                   ))
-                : categoriesData.map((cat) => (
+                : categories.map((cat) => (
                     <tr
                       key={cat.id}
                       className="hover:bg-[#F9F8F6]/30 transition-colors"
@@ -153,10 +224,16 @@ export default function MenuItemsPage() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button className="p-2 text-brand-green/60 hover:text-brand-green hover:bg-brand-green/5 rounded-lg transition-all">
+                          <button
+                            onClick={() => handleEditClick(cat)}
+                            className="p-2 text-brand-green/60 hover:text-brand-green hover:bg-brand-green/5 rounded-lg transition-all"
+                          >
                             <SquarePen size={18} strokeWidth={2.5} />
                           </button>
-                          <button className="p-2 text-[#D64045]  hover:bg-[#FF4D4D]/5 rounded-lg transition-all">
+                          <button
+                            onClick={() => handleDeleteClick(cat)}
+                            className="p-2 text-[#D64045]  hover:bg-[#FF4D4D]/5 rounded-lg transition-all"
+                          >
                             <Trash size={18} strokeWidth={2.5} />
                           </button>
                         </div>
@@ -167,6 +244,34 @@ export default function MenuItemsPage() {
           </table>
         </div>
       </div>
+
+      <AddCategoryModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={fetchCategories}
+      />
+
+      <EditCategoryModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedCategory(null);
+        }}
+        onSuccess={fetchCategories}
+        category={selectedCategory}
+      />
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setCategoryToDelete(null);
+        }}
+        onConfirm={handleDeleteCategory}
+        isLoading={deleteLoading}
+        title="Delete Category"
+        message={`Are you sure you want to delete "${categoryToDelete?.name}"? This action cannot be undone.`}
+      />
     </div>
   );
 }
