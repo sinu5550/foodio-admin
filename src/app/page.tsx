@@ -7,6 +7,7 @@ import EditCategoryModal from "@/components/modals/EditCategoryModal";
 import AddMenuItemModal from "@/components/modals/AddMenuItemModal";
 import EditMenuItemModal from "@/components/modals/EditMenuItemModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Category {
   id: string;
@@ -28,6 +29,7 @@ export default function MenuItemsPage() {
   const [activeTab, setActiveTab] = useState("Menu Items");
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -51,27 +53,37 @@ export default function MenuItemsPage() {
   const [itemToDelete, setItemToDelete] = useState<MenuItem | null>(null);
 
   const fetchData = async () => {
-    fetchCategories();
-    fetchMenuItems();
+    setLoading(true);
+    try {
+      await Promise.all([fetchCategories(false), fetchMenuItems(false)]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (updateLoading = true) => {
+    if (updateLoading) setLoading(true);
     try {
       const response = await fetch("http://localhost:5000/api/categories");
       const data = await response.json();
       setCategories(data);
     } catch (err) {
       console.error("Failed to fetch categories", err);
+    } finally {
+      if (updateLoading) setLoading(false);
     }
   };
 
-  const fetchMenuItems = async () => {
+  const fetchMenuItems = async (updateLoading = true) => {
+    if (updateLoading) setLoading(true);
     try {
       const response = await fetch("http://localhost:5000/api/menu-item");
       const data = await response.json();
       setMenuItems(data);
     } catch (err) {
       console.error("Failed to fetch menu items", err);
+    } finally {
+      if (updateLoading) setLoading(false);
     }
   };
 
@@ -204,8 +216,23 @@ export default function MenuItemsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E6E2D8]">
-              {activeTab === "Menu Items"
-                ? menuItems.map((item) => (
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan={activeTab === "Menu Items" ? 5 : 2}
+                    className="py-20"
+                  >
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <Spinner size={32} />
+                      <p className="text-brand-green/40 text-sm font-medium animate-pulse">
+                        Loading {activeTab}...
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : activeTab === "Menu Items" ? (
+                menuItems.length > 0 ? (
+                  menuItems.map((item) => (
                     <tr
                       key={item.id}
                       className="hover:bg-[#F9F8F6]/30 transition-colors"
@@ -216,7 +243,7 @@ export default function MenuItemsPage() {
                             <img
                               src={item.image}
                               alt={item.name}
-                              className="w-10 h-10 rounded-lg object-cover bg-gray-100"
+                              className="w-10 h-10 rounded-lg object-cover bg-gray-100 shrink-0"
                             />
                           )}
                           <span className="text-[16px] font-medium text-brand-green">
@@ -262,35 +289,56 @@ export default function MenuItemsPage() {
                       </td>
                     </tr>
                   ))
-                : categories.map((cat) => (
-                    <tr
-                      key={cat.id}
-                      className="hover:bg-[#F9F8F6]/30 transition-colors"
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="py-20 text-center text-brand-green/40 font-medium"
                     >
-                      <td className="px-6 py-4 text-[16px] font-medium text-brand-green">
-                        {cat.name}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedCategory(cat);
-                              setIsEditModalOpen(true);
-                            }}
-                            className="p-2 text-brand-green/60 hover:text-brand-green hover:bg-brand-green/5 rounded-lg transition-all"
-                          >
-                            <SquarePen size={18} strokeWidth={2.5} />
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(cat, "category")}
-                            className="p-2 text-[#D64045] hover:bg-[#FF4D4D]/5 rounded-lg transition-all"
-                          >
-                            <Trash size={18} strokeWidth={2.5} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                      No menu items found. Click "Add Item" to get started.
+                    </td>
+                  </tr>
+                )
+              ) : categories.length > 0 ? (
+                categories.map((cat) => (
+                  <tr
+                    key={cat.id}
+                    className="hover:bg-[#F9F8F6]/30 transition-colors"
+                  >
+                    <td className="px-6 py-4 text-[16px] font-medium text-brand-green">
+                      {cat.name}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedCategory(cat);
+                            setIsEditModalOpen(true);
+                          }}
+                          className="p-2 text-brand-green/60 hover:text-brand-green hover:bg-brand-green/5 rounded-lg transition-all"
+                        >
+                          <SquarePen size={18} strokeWidth={2.5} />
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(cat, "category")}
+                          className="p-2 text-[#D64045] hover:bg-[#FF4D4D]/5 rounded-lg transition-all"
+                        >
+                          <Trash size={18} strokeWidth={2.5} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={2}
+                    className="py-20 text-center text-brand-green/40 font-medium"
+                  >
+                    No categories found. Click "Add Category" to get started.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
