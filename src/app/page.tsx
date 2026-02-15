@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Plus, SquarePen, Trash } from "lucide-react";
 import AddCategoryModal from "@/components/modals/AddCategoryModal";
 import EditCategoryModal from "@/components/modals/EditCategoryModal";
+import AddMenuItemModal from "@/components/modals/AddMenuItemModal";
+import EditMenuItemModal from "@/components/modals/EditMenuItemModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 
 interface Category {
@@ -11,57 +13,47 @@ interface Category {
   name: string;
 }
 
-const menuItemsData = [
-  {
-    id: 1,
-    name: "Pan-Seared Scallops",
-    category: "Starters",
-    price: 24.0,
-    status: "Available",
-  },
-  {
-    id: 2,
-    name: "Mediterranean Olive Medley",
-    category: "Starters",
-    price: 18.0,
-    status: "Available",
-  },
-  {
-    id: 3,
-    name: "Citrus Swirl Delights",
-    category: "Main Courses",
-    price: 32.0,
-    status: "Available",
-  },
-  {
-    id: 4,
-    name: "Creamy Garlic Shrimp Pasta",
-    category: "Main Courses",
-    price: 45.0,
-    status: "Available",
-  },
-  {
-    id: 5,
-    name: "Herb-Roasted Chicken Bowl",
-    category: "Desserts",
-    price: 16.0,
-    status: "Available",
-  },
-];
+interface MenuItem {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  image: string | null;
+  categoryId: string;
+  isAvailable: boolean;
+  category?: Category;
+}
 
 export default function MenuItemsPage() {
   const [activeTab, setActiveTab] = useState("Menu Items");
   const [categories, setCategories] = useState<Category[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddMenuItemModalOpen, setIsAddMenuItemModalOpen] = useState(false);
+  const [isEditMenuItemModalOpen, setIsEditMenuItemModalOpen] = useState(false);
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteType, setDeleteType] = useState<"category" | "item">("category");
+
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null,
   );
+  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(
+    null,
+  );
+
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
     null,
   );
+  const [itemToDelete, setItemToDelete] = useState<MenuItem | null>(null);
+
+  const fetchData = async () => {
+    fetchCategories();
+    fetchMenuItems();
+  };
 
   const fetchCategories = async () => {
     try {
@@ -73,43 +65,75 @@ export default function MenuItemsPage() {
     }
   };
 
-  const handleDeleteCategory = async () => {
-    if (!categoryToDelete) return;
-
-    setDeleteLoading(true);
+  const fetchMenuItems = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/categories/${categoryToDelete.id}`,
-        {
-          method: "DELETE",
-        },
-      );
-
-      if (!response.ok) throw new Error("Failed to delete");
-
-      setIsDeleteModalOpen(false);
-      setCategoryToDelete(null);
-      fetchCategories();
+      const response = await fetch("http://localhost:5000/api/menu-item");
+      const data = await response.json();
+      setMenuItems(data);
     } catch (err) {
-      console.error("Delete failed", err);
-      alert("Failed to delete category");
-    } finally {
-      setDeleteLoading(false);
+      console.error("Failed to fetch menu items", err);
     }
   };
 
-  const handleEditClick = (category: Category) => {
-    setSelectedCategory(category);
-    setIsEditModalOpen(true);
+  const handleDelete = async () => {
+    if (deleteType === "category") {
+      if (!categoryToDelete) return;
+      setDeleteLoading(true);
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/categories/${categoryToDelete.id}`,
+          {
+            method: "DELETE",
+          },
+        );
+        if (!response.ok) throw new Error("Failed to delete category");
+        setIsDeleteModalOpen(false);
+        setCategoryToDelete(null);
+        fetchCategories();
+      } catch (err) {
+        console.error("Delete failed", err);
+        alert("Failed to delete category");
+      } finally {
+        setDeleteLoading(false);
+      }
+    } else {
+      if (!itemToDelete) return;
+      setDeleteLoading(true);
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/menu-item/${itemToDelete.id}`,
+          {
+            method: "DELETE",
+          },
+        );
+        if (!response.ok) throw new Error("Failed to delete item");
+        setIsDeleteModalOpen(false);
+        setItemToDelete(null);
+        fetchMenuItems();
+      } catch (err) {
+        console.error("Delete failed", err);
+        alert("Failed to delete item");
+      } finally {
+        setDeleteLoading(false);
+      }
+    }
   };
 
-  const handleDeleteClick = (category: Category) => {
-    setCategoryToDelete(category);
+  const openDeleteModal = (
+    target: Category | MenuItem,
+    type: "category" | "item",
+  ) => {
+    setDeleteType(type);
+    if (type === "category") {
+      setCategoryToDelete(target as Category);
+    } else {
+      setItemToDelete(target as MenuItem);
+    }
     setIsDeleteModalOpen(true);
   };
 
   useEffect(() => {
-    fetchCategories();
+    fetchData();
   }, []);
 
   return (
@@ -139,75 +163,99 @@ export default function MenuItemsPage() {
             </button>
           </div>
 
-          {/* Add Button */}
           <button
             onClick={() => {
-              if (activeTab === "Categories") {
-                setIsAddModalOpen(true);
+              if (activeTab === "Menu Items") {
+                setIsAddMenuItemModalOpen(true);
               } else {
-                console.log("Add Item modal not implemented yet");
+                setIsAddModalOpen(true);
               }
             }}
-            className="bg-brand-green text-white px-6 py-2.5 rounded-full text-sm font-medium flex items-center gap-2 hover:bg-brand-green/95 transition-all shadow-xs"
+            className="bg-brand-green text-white px-6 py-2 rounded-full text-sm font-medium flex items-center gap-2 hover:bg-brand-green/95 transition-all shadow-xs"
           >
             <Plus size={18} />
             {activeTab === "Menu Items" ? "Add Item" : "Add Category"}
           </button>
         </div>
 
-        {/* Tabl */}
         <div className="bg-white border border-[#E6E2D8] rounded-[16px] overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-[#E6E2D8] bg-[#F9F8F6]/50">
-                <th className="px-6 py-4 text-[15px] font-semibold text-brand-green tracking-wider">
+                <th className="px-6 py-4 text-[16px] font-semibold text-brand-green tracking-wider">
                   Name
                 </th>
                 {activeTab === "Menu Items" && (
                   <>
-                    <th className="px-6 py-4 text-[15px] font-semibold text-brand-green tracking-wider">
+                    <th className="px-6 py-4 text-[16px] font-semibold text-brand-green tracking-wider">
                       Category
                     </th>
-                    <th className="px-6 py-4 text-[15px] font-semibold text-brand-green tracking-wider">
+                    <th className="px-6 py-4 text-[16px] font-semibold text-brand-green tracking-wider">
                       Price
                     </th>
-                    <th className="px-6 py-4 text-[15px] font-semibold text-brand-green tracking-wider">
+                    <th className="px-6 py-4 text-[16px] font-semibold text-brand-green tracking-wider">
                       Status
                     </th>
                   </>
                 )}
-                <th className="px-6 py-4 text-[15px] font-semibold text-brand-green tracking-wider text-right">
+                <th className="px-6 py-4 text-[16px] font-semibold text-brand-green tracking-wider text-right">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E6E2D8]">
               {activeTab === "Menu Items"
-                ? menuItemsData.map((item) => (
+                ? menuItems.map((item) => (
                     <tr
                       key={item.id}
                       className="hover:bg-[#F9F8F6]/30 transition-colors"
                     >
-                      <td className="px-6 py-4 text-[15px] font-medium text-brand-green">
-                        {item.name}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {item.image && (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-10 h-10 rounded-lg object-cover bg-gray-100"
+                            />
+                          )}
+                          <span className="text-[16px] font-medium text-brand-green">
+                            {item.name}
+                          </span>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 text-[15px] text-brand-green">
-                        {item.category}
+                      <td className="px-6 py-4 text-[16px] text-brand-green">
+                        {item.category?.name || "Uncategorized"}
                       </td>
-                      <td className="px-6 py-4 text-[15px] text-brand-green font-medium">
-                        ${item.price.toFixed(2)}
+                      <td className="px-6 py-4 text-[16px] text-brand-green font-medium">
+                        ${Number(item.price).toFixed(2)}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="px-3 py-1 rounded-full bg-[#DCFCE7] text-[#008236] text-xs font-medium">
-                          {item.status}
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            item.isAvailable
+                              ? "bg-[#DCFCE7] text-[#008236]"
+                              : "bg-red-100 text-red-600"
+                          }`}
+                        >
+                          {item.isAvailable ? "Available" : "Unavailable"}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button className="p-2 text-brand-green/60 hover:text-brand-green hover:bg-brand-green/5 rounded-lg transition-all">
+                          <button
+                            onClick={() => {
+                              setSelectedMenuItem(item);
+                              setIsEditMenuItemModalOpen(true);
+                            }}
+                            className="p-2 text-brand-green/60 hover:text-brand-green hover:bg-brand-green/5 rounded-lg transition-all"
+                          >
                             <SquarePen size={18} strokeWidth={2.5} />
                           </button>
-                          <button className="p-2 text-[#D64045]  hover:bg-[#FF4D4D]/5 rounded-lg transition-all">
+                          <button
+                            onClick={() => openDeleteModal(item, "item")}
+                            className="p-2 text-[#D64045] hover:bg-[#FF4D4D]/5 rounded-lg transition-all"
+                          >
                             <Trash size={18} strokeWidth={2.5} />
                           </button>
                         </div>
@@ -219,20 +267,23 @@ export default function MenuItemsPage() {
                       key={cat.id}
                       className="hover:bg-[#F9F8F6]/30 transition-colors"
                     >
-                      <td className="px-6 py-4 text-[15px] font-medium text-brand-green">
+                      <td className="px-6 py-4 text-[16px] font-medium text-brand-green">
                         {cat.name}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={() => handleEditClick(cat)}
+                            onClick={() => {
+                              setSelectedCategory(cat);
+                              setIsEditModalOpen(true);
+                            }}
                             className="p-2 text-brand-green/60 hover:text-brand-green hover:bg-brand-green/5 rounded-lg transition-all"
                           >
                             <SquarePen size={18} strokeWidth={2.5} />
                           </button>
                           <button
-                            onClick={() => handleDeleteClick(cat)}
-                            className="p-2 text-[#D64045]  hover:bg-[#FF4D4D]/5 rounded-lg transition-all"
+                            onClick={() => openDeleteModal(cat, "category")}
+                            className="p-2 text-[#D64045] hover:bg-[#FF4D4D]/5 rounded-lg transition-all"
                           >
                             <Trash size={18} strokeWidth={2.5} />
                           </button>
@@ -250,7 +301,6 @@ export default function MenuItemsPage() {
         onClose={() => setIsAddModalOpen(false)}
         onSuccess={fetchCategories}
       />
-
       <EditCategoryModal
         isOpen={isEditModalOpen}
         onClose={() => {
@@ -261,16 +311,38 @@ export default function MenuItemsPage() {
         category={selectedCategory}
       />
 
+      <AddMenuItemModal
+        isOpen={isAddMenuItemModalOpen}
+        onClose={() => setIsAddMenuItemModalOpen(false)}
+        onSuccess={fetchMenuItems}
+      />
+      <EditMenuItemModal
+        isOpen={isEditMenuItemModalOpen}
+        onClose={() => {
+          setIsEditMenuItemModalOpen(false);
+          setSelectedMenuItem(null);
+        }}
+        onSuccess={fetchMenuItems}
+        menuItem={selectedMenuItem}
+      />
+
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => {
           setIsDeleteModalOpen(false);
           setCategoryToDelete(null);
+          setItemToDelete(null);
         }}
-        onConfirm={handleDeleteCategory}
+        onConfirm={handleDelete}
         isLoading={deleteLoading}
-        title="Delete Category"
-        message={`Are you sure you want to delete "${categoryToDelete?.name}"? This action cannot be undone.`}
+        title={
+          deleteType === "category" ? "Delete Category" : "Delete Menu Item"
+        }
+        message={
+          deleteType === "category"
+            ? `Are you sure you want to delete "${categoryToDelete?.name}"? This action cannot be undone.`
+            : `Are you sure you want to delete "${itemToDelete?.name}"? This action cannot be undone.`
+        }
       />
     </div>
   );
