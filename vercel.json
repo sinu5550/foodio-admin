@@ -1,0 +1,6 @@
+{
+  "env": {
+    "NEXT_PUBLIC_API_URL": "https://foodio-server-siyan.vercel.app",
+    "NEXT_PUBLIC_USER_URL": "https://foodio-user-siyan.vercel.app"
+  }
+}
