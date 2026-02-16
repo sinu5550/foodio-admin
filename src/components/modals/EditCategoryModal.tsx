@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import BaseModal from "./BaseModal";
+import { toast } from "sonner";
 
 interface Category {
   id: string;
@@ -23,7 +24,6 @@ export default function EditCategoryModal({
 }: EditCategoryModalProps) {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     if (category) {
@@ -36,7 +36,6 @@ export default function EditCategoryModal({
     if (!name.trim() || !category) return;
 
     setLoading(true);
-    setError("");
 
     try {
       const response = await fetch(
@@ -54,10 +53,15 @@ export default function EditCategoryModal({
         throw new Error("Failed to update category");
       }
 
+      toast.success(
+        <span>
+          Category updated to <strong>{name}</strong>
+        </span>,
+      );
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.message || "Something went wrong");
+      toast.error(err.message || "Failed to update category");
     } finally {
       setLoading(false);
     }
@@ -83,8 +87,6 @@ export default function EditCategoryModal({
             disabled={loading}
           />
         </div>
-
-        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
         <div className="flex justify-end pt-4">
           <button

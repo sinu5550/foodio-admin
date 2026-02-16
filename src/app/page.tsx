@@ -8,6 +8,7 @@ import AddMenuItemModal from "@/components/modals/AddMenuItemModal";
 import EditMenuItemModal from "@/components/modals/EditMenuItemModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 import { Spinner } from "@/components/ui/spinner";
+import { toast } from "sonner";
 
 interface Category {
   id: string;
@@ -100,11 +101,17 @@ export default function MenuItemsPage() {
         );
         if (!response.ok) throw new Error("Failed to delete category");
         setIsDeleteModalOpen(false);
+        const deletedName = categoryToDelete.name;
         setCategoryToDelete(null);
-        fetchCategories();
-      } catch (err) {
+        await fetchCategories();
+        toast.success(
+          <span>
+            Category <strong>{deletedName}</strong> deleted successfully
+          </span>,
+        );
+      } catch (err: any) {
         console.error("Delete failed", err);
-        alert("Failed to delete category");
+        toast.error(err.message || "Failed to delete category");
       } finally {
         setDeleteLoading(false);
       }
@@ -120,11 +127,17 @@ export default function MenuItemsPage() {
         );
         if (!response.ok) throw new Error("Failed to delete item");
         setIsDeleteModalOpen(false);
+        const deletedName = itemToDelete.name;
         setItemToDelete(null);
-        fetchMenuItems();
-      } catch (err) {
+        await fetchMenuItems();
+        toast.success(
+          <span>
+            Menu item <strong>{deletedName}</strong> deleted successfully
+          </span>,
+        );
+      } catch (err: any) {
         console.error("Delete failed", err);
-        alert("Failed to delete item");
+        toast.error(err.message || "Failed to delete item");
       } finally {
         setDeleteLoading(false);
       }

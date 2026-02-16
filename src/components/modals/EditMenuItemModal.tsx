@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import BaseModal from "./BaseModal";
 import { Upload, X, ChevronDown } from "lucide-react";
+import { toast } from "sonner";
 
 interface Category {
   id: string;
@@ -127,10 +128,15 @@ export default function EditMenuItemModal({
         throw new Error("Failed to update menu item");
       }
 
+      toast.success(
+        <span>
+          Menu item <strong>{name}</strong> updated successfully
+        </span>,
+      );
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.message || "Something went wrong");
+      toast.error(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import BaseModal from "./BaseModal";
+import { toast } from "sonner";
 
 interface AddCategoryModalProps {
   isOpen: boolean;
@@ -38,6 +39,11 @@ export default function AddCategoryModal({
         throw new Error("Failed to create category");
       }
 
+      toast.success(
+        <span>
+          Category <strong>{name}</strong> added successfully
+        </span>,
+      );
       setName("");
       onSuccess();
       onClose();
@@ -70,7 +76,6 @@ export default function AddCategoryModal({
         </div>
 
         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-
         <div className="flex justify-end pt-4">
           <button
             type="submit"
