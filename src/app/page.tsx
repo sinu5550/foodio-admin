@@ -65,7 +65,9 @@ export default function MenuItemsPage() {
   const fetchCategories = async (updateLoading = true) => {
     if (updateLoading) setLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/api/categories");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/categories`,
+      );
       const data = await response.json();
       setCategories(data);
     } catch (err) {
@@ -78,7 +80,9 @@ export default function MenuItemsPage() {
   const fetchMenuItems = async (updateLoading = true) => {
     if (updateLoading) setLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/api/menu-item");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/menu-item`,
+      );
       const data = await response.json();
       setMenuItems(data);
     } catch (err) {
@@ -94,7 +98,7 @@ export default function MenuItemsPage() {
       setDeleteLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:5000/api/categories/${categoryToDelete.id}`,
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/categories/${categoryToDelete.id}`,
           {
             method: "DELETE",
           },
@@ -120,7 +124,7 @@ export default function MenuItemsPage() {
       setDeleteLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:5000/api/menu-item/${itemToDelete.id}`,
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/menu-item/${itemToDelete.id}`,
           {
             method: "DELETE",
           },

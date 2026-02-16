@@ -42,7 +42,9 @@ export default function AddMenuItemModal({
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/categories");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/categories`,
+      );
       const data = await response.json();
       setCategories(data);
       if (data.length > 0 && !categoryId) {
@@ -99,10 +101,13 @@ export default function AddMenuItemModal({
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/menu-item", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/menu-item`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       if (!response.ok) {
         throw new Error("Failed to create menu item");

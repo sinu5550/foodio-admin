@@ -52,7 +52,8 @@ export default function Sidebar() {
       <div className="pt-2 border-t border-[#E6E2D8]">
         <button
           onClick={() => {
-            window.location.href = "http://localhost:3000";
+            window.location.href =
+              process.env.NEXT_PUBLIC_USER_URL || "http://localhost:3000";
           }}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-[12px] text-sm font-medium text-[#FF4D4D] hover:bg-[#FF4D4D]/5 transition-all"
         >

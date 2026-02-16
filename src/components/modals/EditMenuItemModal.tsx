@@ -62,7 +62,9 @@ export default function EditMenuItemModal({
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/categories");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/categories`,
+      );
       const data = await response.json();
       setCategories(data);
     } catch (err) {
@@ -117,7 +119,7 @@ export default function EditMenuItemModal({
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/menu-item/${menuItem.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/menu-item/${menuItem.id}`,
         {
           method: "PATCH",
           body: formData,

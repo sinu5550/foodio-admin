@@ -55,7 +55,9 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:5000/api/orders");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/orders`,
+      );
       const data = await res.json();
       setOrders(data);
     } catch (error) {
@@ -78,7 +80,7 @@ export default function OrdersPage() {
       }
 
       const res = await fetch(
-        `http://localhost:5000/api/orders/${orderId}/status`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/orders/${orderId}/status`,
         {
           method: "PATCH",
           headers: {
@@ -89,9 +91,8 @@ export default function OrdersPage() {
       );
 
       if (!res.ok) {
-        
         console.error("Failed to update status on server");
-        fetchOrders(); 
+        fetchOrders();
       }
     } catch (error) {
       console.error("Failed to update status:", error);
