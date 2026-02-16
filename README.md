@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Foodio Admin (Dashboard)
 
-## Getting Started
+A powerful administrative control panel for the Foodio ecosystem. Manage the menu and orders with lightning-fast efficiency.
 
-First, run the development server:
+## 🚀 Live Demo
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Dashboard**: https://foodio-admin-siyan.vercel.app/
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework**: [Next.js](https://nextjs.org/) (App Router)
+- **Design System**: Custom professional dashboard UI (Clean & Minimalist)
+- **Media Handling**: Multipart/form-data with image preview
+- **Feedback**: [Sonner](https://sonner.emilkowal.ski/) (Beautiful toast notifications)
+- **Verification**: Fully environment-parameterized API integrations
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ✨ Key Features
 
-## Learn More
+- **Menu Management**: Full CRUD capabilities for Categories and Menu Items.
+- **Order Command Center**: Real-time order listing with instant status updates (Preparing, Ready, etc.).
+- **Image Upload Integration**: Seamlessly upload food photos directly to the server with instant UI feedback.
+- **Smart Modals**: Clean and concise Add/Edit modals for all data types.
+- **Navigation**: Persistent sidebar with active-state tracking and professional edge-to-edge dividers.
+- **Secure Redirection**: Environment-aware sign-out flow that redirects to the live user site.
 
-To learn more about Next.js, take a look at the following resources:
+## 📂 Architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `src/components/modals`: Centralized management modals for clean code.
+- `src/app/orders`: Real-time order management system.
+- `src/app/page.tsx`: Unified hub for Menu and Category administration.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## ⚙️ Installation & Setup (Local)
 
-## Deploy on Vercel
+1. **Clone the repo**
+2. **Install dependencies**: `npm install`
+3. **Configure Environment Variables**:
+   Create a `.env` file:
+   ```env
+   NEXT_PUBLIC_API_URL="http://localhost:5000"
+   NEXT_PUBLIC_USER_URL="http://localhost:3000"
+   ```
+4. **Run Development Server**: `npm run dev`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 👨‍💻 Developed by
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[Intisar_Ahmed_Siyan] - Passionate Full-Stack Developer
