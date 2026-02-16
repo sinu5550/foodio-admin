@@ -103,7 +103,10 @@ export default function MenuItemsPage() {
             method: "DELETE",
           },
         );
-        if (!response.ok) throw new Error("Failed to delete category");
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || "Failed to delete category");
+        }
         setIsDeleteModalOpen(false);
         const deletedName = categoryToDelete.name;
         setCategoryToDelete(null);
@@ -129,7 +132,10 @@ export default function MenuItemsPage() {
             method: "DELETE",
           },
         );
-        if (!response.ok) throw new Error("Failed to delete item");
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || "Failed to delete item");
+        }
         setIsDeleteModalOpen(false);
         const deletedName = itemToDelete.name;
         setItemToDelete(null);
